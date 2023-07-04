@@ -1,12 +1,14 @@
 import bedrock, { Player } from "bedrock-protocol"
 import axios from "axios"
+import conf from "./main.conf"
+
 const server = bedrock.createServer({
-	host: '0.0.0.0',
-	port: 19132,
-	version: '1.19.50',
+	host: conf.bedrock.ip,
+	port: conf.bedrock.port,
+	version: conf.bedrock.version,
 	motd: {
-		motd: 'DiPix linking server',
-		levelName: 'Get code and use /link in Discord'
+		motd: conf.strings.motd,
+		levelName: conf.strings.levelname
 	}
 })
 
@@ -14,17 +16,17 @@ server.on('connect', (client: Player) => {
 	client.on('join', () => {
 		const XUID = client.profile?.xuid
 		if (!XUID) {
-			client.disconnect(`Get XUID failed. Try again or report to admins.`)
+			client.disconnect(conf.strings.getFailed)
 			console.log(`Can't get player XUID`)
 			return
 		}
-		const code = 0
-		axios.get(`http://localhost:5000/external/xuid?code=${code}&xuid=${XUID}`).then((res) => {
+		const code = '0'
+		axios.get(conf.url(code, XUID)).then((res) => {
 			if (res.status == 200)
-				return client.disconnect(`Code: ${code}. Use it in Discord with /link command.`)
-			else return client.disconnect(`XUID routing failed. Try again or report to admins.`)
+				return client.disconnect(conf.strings.success(code))
+			else return client.disconnect(conf.strings.routeFailed + conf.strings.report)
 		}).catch(() => {
-			client.disconnect(`XUID routing failed. Try again or report to admins.`)
+			client.disconnect(conf.strings.routeFailed + conf.strings.report)
 		})
 	})
 })
